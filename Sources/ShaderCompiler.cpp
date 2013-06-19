@@ -42,7 +42,7 @@ TCompiler* ConstructCompiler(ShShaderType type, ShShaderSpec spec, ShShaderOutpu
 		return new TranslatorESSL(type, spec);
 #ifdef SYS_WINDOWS
 	case SH_HLSL_OUTPUT:
-		return new TranslatorHLSL(type, spec);
+		return new TranslatorHLSL(type, spec, output);
 #endif
 	case SH_AGAL_OUTPUT:
 		return new TranslatorAGAL(type, spec);
@@ -794,7 +794,7 @@ int compileGLSL(const ShaderSource& source, const char* to, ShShaderOutput outpu
 	ShHandle vertexCompiler = 0;
 	ShHandle fragmentCompiler = 0;
 	char* buffer = 0;
-	int bufferLen = 0;
+	size_t bufferLen = 0;
 	int numAttribs = 0, numUniforms = 0;
 	ShShaderSpec spec = SH_GLES2_SPEC;
 	//ShShaderOutput output = SH_ESSL_OUTPUT;
@@ -1054,7 +1054,7 @@ void LogMsg(const char* msg, const char* name, const int num, const char* logNam
 
 void PrintActiveVariables(ShHandle compiler, ShShaderInfo varType, bool mapLongVariableNames)
 {
-	int nameSize = 0;
+	size_t nameSize = 0;
 	switch (varType) {
 		case SH_ACTIVE_ATTRIBUTES:
 			ShGetInfo(compiler, SH_ACTIVE_ATTRIBUTE_MAX_LENGTH, &nameSize);
@@ -1069,16 +1069,17 @@ void PrintActiveVariables(ShHandle compiler, ShShaderInfo varType, bool mapLongV
 
 	char* mappedName = NULL;
 	if (mapLongVariableNames) {
-		int mappedNameSize = 0;
+		size_t mappedNameSize = 0;
 		ShGetInfo(compiler, SH_MAPPED_NAME_MAX_LENGTH, &mappedNameSize);
 		mappedName = new char[mappedNameSize];
 	}
 
-	int activeVars = 0, size = 0;
+	size_t activeVars = 0;
+	int size = 0;
 	ShDataType type = SH_NONE;
 	const char* typeName = NULL;
 	ShGetInfo(compiler, varType, &activeVars);
-	for (int i = 0; i < activeVars; ++i) {
+	for (size_t i = 0; i < activeVars; ++i) {
 		switch (varType) {
 			case SH_ACTIVE_ATTRIBUTES:
 				ShGetActiveAttrib(compiler, i, NULL, &size, &type, name, mappedName);
@@ -1237,9 +1238,9 @@ static void copyFile(std::string from, std::string to) {
 #endif
 #ifdef SYS_OSX
 	pid_t pid = fork();
-    if (pid == 0) {
-        execl("/bin/cp", "/bin/cp", from.c_str(), to.c_str(), (char *)0);
-    }
+	if (pid == 0) {
+		execl("/bin/cp", "/bin/cp", from.c_str(), to.c_str(), (char *)0);
+	}
 #endif
 }
 

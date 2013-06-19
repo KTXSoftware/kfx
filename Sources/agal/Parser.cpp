@@ -22,7 +22,7 @@ ParsedHxsl Parser::parse(TIntermNode* e) {
 	for (auto it = aggregate->getSequence().begin(); it != aggregate->getSequence().end(); ++it) {
 		parseDecl(*it);
 	}
-	if (main == nullptr) error("Missing main function", e->getLine());
+	if (main == nullptr) error("Missing main function", e->getLine().first_line);
 	allowReturn = false;
 	ParsedCode s = buildShader(main);
 	std::map<std::string, ParsedCode> help;
@@ -34,14 +34,14 @@ ParsedHxsl Parser::parse(TIntermNode* e) {
 	ParsedHxsl hxsl;
 	hxsl.shader = s;
 	hxsl.globals = globals;
-	hxsl.pos = e->getLine();
+	hxsl.pos = e->getLine().first_line;
 	hxsl.helpers = help;
 	return hxsl;
 }
 
 ParsedCode Parser::buildShader(TIntermAggregate* f) {
-	cur.pos = f->getLine();
-	Position pos = f->getLine();
+	cur.pos = f->getLine().first_line;
+	Position pos = f->getLine().first_line;
 	TIntermSequence& sequence = f->getSequence();
 	TIntermSequence& arguments = sequence[0]->getAsAggregate()->getSequence();
 	for (auto it = arguments.begin(); it != arguments.end(); ++it) {
@@ -74,14 +74,14 @@ void Parser::parseDecl(TIntermNode* e) {
 	auto aggregate = e->getAsAggregate();
 	switch (aggregate->getOp()) {
 	case EOpDeclaration: {
-		auto v = allocVarDecl(aggregate->getSequence()[0]->getAsSymbolNode()->getSymbol().c_str(), aggregate->getAsTyped()->getTypePointer(), e->getLine());
+		auto v = allocVarDecl(aggregate->getSequence()[0]->getAsSymbolNode()->getSymbol().c_str(), aggregate->getAsTyped()->getTypePointer(), e->getLine().first_line);
 		globals.push_back(v);
 		return;
 	}
 	case EOpFunction:
 		if (aggregate->getName() == "main(") main = aggregate;
 		else {
-			if (helpers.find(aggregate->getName().c_str()) != helpers.end()) error(std::string("Duplicate function '") + aggregate->getName().c_str() + "'", e->getLine());
+			if (helpers.find(aggregate->getName().c_str()) != helpers.end()) error(std::string("Duplicate function '") + aggregate->getName().c_str() + "'", e->getLine().first_line);
 			helpers[aggregate->getName().c_str()] = aggregate;
 		}
 		return;
@@ -223,17 +223,17 @@ ParsedValue Parser::parseValue(TIntermTyped* e) {
 			}
 			ParsedValue value;
 			value.v = field;
-			value.p = binary->getLine();
+			value.p = binary->getLine().first_line;
 			return value;
 		}
 		//case OpMod: CMod;
 		//case OpInterval: CInterval;
 		default:
-			error("Unsupported operation", e->getLine());
+			error("Unsupported operation", e->getLine().first_line);
 		}
 		ParsedValue value;
 		value.v = new POp(op, parseValue(binary->getLeft()), parseValue(binary->getRight()));
-		value.p = e->getLine();
+		value.p = e->getLine().first_line;
 		return value;
 	}
 	else if (symbol != nullptr) {
@@ -241,19 +241,19 @@ ParsedValue Parser::parseValue(TIntermTyped* e) {
 		auto var = new PVar;
 		var->v = symbol->getSymbol().c_str();
 		value.v = var;
-		value.p = e->getLine();
+		value.p = e->getLine().first_line;
 		return value;
 	}
 	else if (constunion != nullptr) {
 		ParsedValue value;
-		value.p = constunion->getLine();
+		value.p = constunion->getLine().first_line;
 		auto constVar = new PConst;
 		switch (constunion->getType().getBasicType()) {
 		case EbtFloat:	
 			constVar->c = new ConstFloat(constunion->getUnionArrayPointer()->getFConst());
 			break;
 		default:
-			error("Unknown type", constunion->getLine());
+			error("Unknown type", constunion->getLine().first_line);
 		}
 		value.v = constVar;
 		return value;
@@ -267,18 +267,18 @@ ParsedValue Parser::parseValue(TIntermTyped* e) {
 			}
 			ParsedValue value;
 			value.v = vector;
-			value.p = aggregate->getLine();
+			value.p = aggregate->getLine().first_line;
 			return value;
 		}
 		default:
-			error("Unknown aggregate", constunion->getLine());
+			error("Unknown aggregate", constunion->getLine().first_line);
 		}
 	}
 
-	error("Unsupported value expression", e->getLine());
+	error("Unsupported value expression", e->getLine().first_line);
 	ParsedValue value;
 	value.v = nullptr;
-	value.p = e->getLine();
+	value.p = e->getLine().first_line;
 	return value;
 
 	/*switch (e.expr) {
@@ -359,29 +359,29 @@ void Parser::parseExpr(TIntermSequence& e) {
 				expr.v = nullptr;
 				ParsedValue value;
 				value.v = nullptr;
-				value.p = aggregate->getLine();
+				value.p = aggregate->getLine().first_line;
 				std::vector<TIntermTyped*> args;
 				for (auto it2 = aggregate->getSequence().begin(); it2 != aggregate->getSequence().end(); ++it2) {
 					args.push_back((*it2)->getAsTyped());
 				}
-				expr.e = new ParsedValue(makeCall(aggregate->getName().c_str(), args, aggregate->getLine()));
-				expr.p = aggregate->getLine();
+				expr.e = new ParsedValue(makeCall(aggregate->getName().c_str(), args, aggregate->getLine().first_line));
+				expr.p = aggregate->getLine().first_line;
 				cur.exprs.push_back(expr);
 				break;
 			}
 			case EOpDeclaration: {
 				PLocal* local = new PLocal;
 				auto var = dynamic_cast<TIntermBinary*>(aggregate->getSequence()[0]);
-				if (var->getOp() != EOpInitialize) error("Expected initialization.", var->getLine());
-				local->v = allocVar(var->getLeft()->getAsSymbolNode()->getSymbol().c_str(), var->getLeft()->getTypePointer(), VTmp, var->getLine());
+				if (var->getOp() != EOpInitialize) error("Expected initialization.", var->getLine().first_line);
+				local->v = allocVar(var->getLeft()->getAsSymbolNode()->getSymbol().c_str(), var->getLeft()->getTypePointer(), VTmp, var->getLine().first_line);
 				
 				ParsedExpr expr;
 				ParsedValue* value = new ParsedValue;
 				value->v = local;
-				value->p = var->getLine();
+				value->p = var->getLine().first_line;
 				expr.v = value;
 				expr.e = new ParsedValue(parseValue(var->getRight()));
-				expr.p = var->getLine();
+				expr.p = var->getLine().first_line;
 				cur.exprs.push_back(expr);
 				break;
 			}
@@ -392,7 +392,7 @@ void Parser::parseExpr(TIntermSequence& e) {
 		else if (binop != nullptr) {
 			switch (binop->getOp()) {
 			case EOpAssign:
-				addAssign(parseValue(binop->getLeft()), parseValue(binop->getRight()), binop->getLine());
+				addAssign(parseValue(binop->getLeft()), parseValue(binop->getRight()), binop->getLine().first_line);
 				break;
 			case EOpAddAssign:
 		
@@ -417,7 +417,7 @@ void Parser::parseExpr(TIntermSequence& e) {
 			//	addAssign(parseValue(e1), parseValue( { expr : EBinop(op, e1, e2), pos : e.pos } ), e.pos);
 				break;
 			default:
-				error("Operation should have side-effects", binop->getLine());
+				error("Operation should have side-effects", binop->getLine().first_line);
 			}
 		}
 
