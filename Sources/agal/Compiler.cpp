@@ -33,7 +33,7 @@ void Compiler::error(std::string msg, Position p) {
 }
 
 Data Compiler::compile(ParsedHxsl h) {
-	auto out = allocVar("out", VOut, new TFloat4, h.pos);
+	auto out = allocVar("gl_Position", VOut, new TFloat4, h.pos);
 	props(out).global = true;
 	helpers = h.helpers;
 	
@@ -354,7 +354,7 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 			error(std::string("Unknown variable '") + var->v + "'", e->p);
 		auto v = vars[var->v];
 		if (!isTarget)
-			checkReadVar(v, std::vector<Comp>(), e->p, *isCond);
+			checkReadVar(v, std::vector<Comp>(), e->p, isCond == nullptr ? false : *isCond);
 		CodeValue value;
 		auto cvar = new CVar(v, std::vector<Comp>());
 		value.d = cvar;
@@ -395,11 +395,11 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 	}
 	else if (e->v->isOp()) {
 		auto op = dynamic_cast<POp*>(e->v);
-		return makeOp(op->op, op->e1, op->e2, e->p, *isCond);
+		return makeOp(op->op, op->e1, op->e2, e->p, isCond == nullptr ? false : *isCond);
 	}
 	else if (e->v->isUnop()) {
 		auto op = dynamic_cast<PUnop*>(e->v);
-		return makeUnop(op->op, op->e, e->p, *isCond);
+		return makeUnop(op->op, op->e, e->p, isCond == nullptr ? false : *isCond);
 	}
 	else if (e->v->isTex()) {
 		/*
@@ -860,6 +860,12 @@ bool Compiler::tryUnify(VarType* t1, VarType* t2) {
 		auto tex1 = dynamic_cast<TTexture*>(t1);
 		auto tex2 = dynamic_cast<TTexture*>(t2);
 		return tex2 != nullptr && tex1->cube == tex2->cube;
+	}
+	else if (t1->isFloat()) {
+		return t2->isFloat();
+	}
+	else if (t1->isFloat2()) {
+		return t2->isFloat2();
 	}
 	else if (t1->isFloat3()) {
 		return t2->isFloat3();

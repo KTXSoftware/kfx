@@ -41,6 +41,8 @@ ParsedHxsl Parser::parse(TIntermNode* e) {
 
 ParsedCode Parser::buildShader(TIntermAggregate* f) {
 	cur.pos = f->getLine().first_line;
+	cur.args.clear();
+	cur.exprs.clear();
 	Position pos = f->getLine().first_line;
 	TIntermSequence& sequence = f->getSequence();
 	TIntermSequence& arguments = sequence[0]->getAsAggregate()->getSequence();
@@ -74,7 +76,7 @@ void Parser::parseDecl(TIntermNode* e) {
 	auto aggregate = e->getAsAggregate();
 	switch (aggregate->getOp()) {
 	case EOpDeclaration: {
-		auto v = allocVarDecl(aggregate->getSequence()[0]->getAsSymbolNode()->getSymbol().c_str(), aggregate->getAsTyped()->getTypePointer(), e->getLine().first_line);
+		auto v = allocVarDecl(aggregate->getSequence()[0]->getAsSymbolNode()->getSymbol().c_str(), aggregate->getSequence()[0]->getAsTyped()->getTypePointer(), e->getLine().first_line);
 		globals.push_back(v);
 		return;
 	}
@@ -93,7 +95,21 @@ VarType* Parser::getType(TType* t, Position pos) {
 	case EbtVoid:
 		return new TNull;
 	case EbtFloat:
-		return new TFloat;
+		if (t->isMatrix()) return new TMatrix;
+		else {
+			switch (t->getNominalSize()) {
+			case 1:
+				return new TFloat;
+			case 2:
+				return new TFloat2;
+			case 3:
+				return new TFloat3;
+			case 4:
+				return new TFloat4;
+			default:
+				error("Unknown type", pos);
+			}
+		}
 	case EbtInt:
 		return new TInt;
 	case EbtBool:

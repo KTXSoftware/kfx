@@ -46,6 +46,7 @@ namespace agal {
 		Compiler() {
 			allowAllWMasks = false;
 			auto ops = initOps();
+			this->ops.resize(ops.size());
 			for (auto o = ops.begin(); o != ops.end(); ++o)
 				this->ops[enumIndex(o->o)] = o->types;
 		}
