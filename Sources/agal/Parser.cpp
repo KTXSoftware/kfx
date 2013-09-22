@@ -67,7 +67,49 @@ ParsedVar Parser::allocVar(const char* v, TType* t, VarKind k, Position p) {
 }
 
 ParsedVar Parser::allocVarDecl(std::string v, TType* t, Position p) {
-	ParsedVar var = allocVar(v.c_str(), t, VUnknown, p);
+	VarKind kind = VUnknown;
+	switch (t->getQualifier()) {
+	case EvqTemporary:     // For temporaries (within a function), read/write
+	case EvqGlobal:        // For globals read/write
+		break;
+	case EvqConst:         // User defined constants and non-output parameters in functions
+		kind = VConst;
+		break;
+	case EvqAttribute:     // Readonly
+		kind = VInput;
+		break;
+	case EvqVaryingIn:     // readonly, fragment shaders only
+	case EvqVaryingOut:    // vertex shaders only  read/write
+	case EvqInvariantVaryingIn:     // readonly, fragment shaders only
+	case EvqInvariantVaryingOut:    // vertex shaders only  read/write
+		kind = VVar;
+		break;
+	case EvqUniform:       // Readonly, vertex and fragment
+		kind = VConst;
+		break;
+
+	// parameters
+	case EvqIn:
+	case EvqOut:
+	case EvqInOut:
+	case EvqConstReadOnly:
+
+	// built-ins written by vertex shader
+	case EvqPosition:
+	case EvqPointSize:
+
+	// built-ins read by fragment shader
+	case EvqFragCoord:
+	case EvqFrontFacing:
+	case EvqPointCoord:
+
+	// built-ins written by fragment shader
+	case EvqFragColor:
+	case EvqFragData:
+	case EvqFragDepth:
+		break;
+	}
+	ParsedVar var = allocVar(v.c_str(), t, kind, p);
 	//VarKind
 	return var;
 }
@@ -95,7 +137,12 @@ VarType* Parser::getType(TType* t, Position pos) {
 	case EbtVoid:
 		return new TNull;
 	case EbtFloat:
-		if (t->isMatrix()) return new TMatrix;
+		if (t->isMatrix()) {
+			auto m = new TMatrix;
+			m->c = 4;
+			m->r = 4;
+			return m;
+		}
 		else {
 			switch (t->getNominalSize()) {
 			case 1:

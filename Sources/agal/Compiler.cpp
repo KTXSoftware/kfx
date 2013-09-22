@@ -153,8 +153,8 @@ void Compiler::checkVars() {
 		}
 		switch (v->kind) {
 		case VOut:
-			if (vp.write == 0) error("Output is not written by " + shader, p);
-			if (vp.write != fullBits(v->type)) error("Some output components are not written by " + shader, p);
+		//	if (vp.write == 0) error("Output is not written by " + shader, p);
+		//	if (vp.write != fullBits(v->type)) error("Some output components are not written by " + shader, p);
 			vp.write = 0; // reset status between two shaders
 			break;
 		case VVar:
@@ -315,7 +315,7 @@ void Compiler::compileAssign(ParsedValue* v, ParsedValue* e, Position p) {
 			return;
 		}
 		auto e2 = compileValue(e, nullptr, nullptr);
-		if (e2.d->isUnop()) {
+		/*if (e2.d->isUnop()) {
 			CUnop* unop = dynamic_cast<CUnop*>(e2.d);
 			if (unop->op == CKill) {
 				Block block;
@@ -324,8 +324,12 @@ void Compiler::compileAssign(ParsedValue* v, ParsedValue* e, Position p) {
 				cur.exprs.push_back(block);
 				return;
 			}
-		}
-		error("assert", p);
+		}*/
+		Block block;
+		block.v = nullptr;
+		block.e = e2;
+		cur.exprs.push_back(block);
+		return;
 	}
 	if (e == nullptr) {
 		if (v->v->isLocal()) {
@@ -465,7 +469,7 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 	}
 	else if (e->v->isVector()) {
 		auto vec = dynamic_cast<PVector*>(e->v);
-		if (vec->el.size() == 0 || vec->el.size() > 4 )
+		if (vec->el.size() == 0 || vec->el.size() > 4)
 			error("Vector size should be 1-4", e->p);
 		std::vector<CodeValue> exprs;
 		for (auto v : vec->el) {
@@ -576,14 +580,21 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 		for (auto e : h.exprs)
 			compileAssign(e.v, e.e, e.p);
 		auto v = ret;
-		if (v == nullptr)
-			error("Missing return", h.pos);
+		//if (v == nullptr)
+		//	error("Missing return", h.pos);
 		ret = rold;
 		closeBlock(old);
 		CodeValue value;
-		value.d = v->d;
-		value.t = v->t;
-		value.p = e->p;
+		if (v == nullptr) {
+			value.d = nullptr;
+			value.t = new TNull;
+			value.p = 0;
+		}
+		else {
+			value.d = v->d;
+			value.t = v->t;
+			value.p = e->p;
+		}
 		return value;
 	}
 	else if (e->v->isField()) {
@@ -661,7 +672,7 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 					std::vector<Comp> ns;
 					if (var->swiz.size() == 0) {
 						if (!isTarget)
-							checkReadVar(var->v, swiz, e->p, *isCond);
+							checkReadVar(var->v, swiz, e->p, isCond == nullptr ? false : *isCond);
 						ns = swiz;
 					} else {
 						// combine swizzlings
@@ -881,7 +892,7 @@ bool Compiler::isFloat(VarType* t) {
 }
 
 bool Compiler::isCompatible(VarType* t1, VarType* t2) {
-	if (typeid(t1) == typeid(t2)) return true;
+	if (typeid(*t1) == typeid(*t2)) return true;
 	else if (t1->isMatrix()) {
 		if (t2->isMatrix()) {
 			auto m1 = dynamic_cast<TMatrix*>(t1);
@@ -1135,10 +1146,10 @@ std::vector<Compiler::Operation> Compiler::initOps() {
 	std::vector<op> noops;
 	ops.push_back(Operation(CInterval, noops));
 
-	floats.push_back(op(new TFloat4, mat4_t, new TFloat4));
-	floats.push_back(op(new TFloat4, mat34_t, new TFloat3));
-	floats.push_back(op(new TFloat3, mat3_t, new TFloat3));
-	floats.push_back(op(new TFloat3, mat4_t, new TFloat3)); // only use the 3x4 part of the matrix
+	floats.push_back(op(mat4_t, new TFloat4, new TFloat4));
+	floats.push_back(op(mat34_t, new TFloat4, new TFloat3));
+	floats.push_back(op(mat3_t, new TFloat3, new TFloat3));
+	floats.push_back(op(mat4_t, new TFloat3, new TFloat3)); // only use the 3x4 part of the matrix
 	floats.push_back(op(mat4, mat4_t, mat4));
 	floats.push_back(op(mat3, mat3_t, mat3));
 	floats.push_back(op(mat4_t, mat4, mat4_t));

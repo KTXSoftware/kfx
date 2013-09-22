@@ -415,6 +415,7 @@ namespace agal {
 		int r;
 		int c;
 		bool* transpose;
+		TMatrix() : r(0), c(0), transpose(nullptr) { }
 		bool isMatrix() override { return true; }
 	};
 

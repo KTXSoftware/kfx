@@ -191,6 +191,7 @@ bool AgalCompiler::assignRegisters(bool pack, bool vertex) {
 	code = uniqueReg();
 	temps.clear();
 	regs.clear();
+	regs.resize(maxRegs);
 	for (int i = 0; i < maxRegs; ++i)
 		regs[i].clear();
 	startRegister = -1;

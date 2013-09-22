@@ -1249,13 +1249,22 @@ static int compileGLSLToAGAL(std::string from, std::string to, std::string tempd
 
 	ShaderSource source;
 	readShaderSource(from.c_str(), source);
-	if (isVertexShader(from.c_str())) {
+	/*if (isVertexShader(from.c_str())) {
 		source.push_back("void main() {");
 			source.push_back("kore();");
 			source.push_back("vec4 pos = gl_Position;"); //hack to avoid https://github.com/adobe/glsl2agal/issues/24
 			source.push_back("gl_Position.z = (pos.z + pos.w) * 0.5;");
 			source.push_back("gl_Position.xy = pos.xy;");
 			source.push_back("gl_Position.w = pos.w;");
+		source.push_back("}");
+	}
+	else {
+		source.push_back("void main() { kore(); }");
+	}*/
+	if (isVertexShader(from.c_str())) {
+		source.push_back("void main() {");
+			source.push_back("kore();");
+			source.push_back("gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;");
 		source.push_back("}");
 	}
 	else {
