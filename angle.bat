@@ -1,1 +1,0 @@
-call git clone https://github.com/KTXSoftware/angleproject.git

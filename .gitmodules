@@ -1,0 +1,4 @@
+[submodule "angleproject"]
+	path = angleproject
+	url = ../angleproject
+	branch = master
