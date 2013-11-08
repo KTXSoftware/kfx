@@ -370,7 +370,7 @@ void RuntimeCompiler::checkVars() {
 }
 
 CodeValue* RuntimeCompiler::compileValue(CodeValue* e, bool isTarget) {
-	CodeValueDecl* d;
+	CodeValueDecl* d = NULL;
 	if (e->d->isConst()) {
 		d = e->d;
 	}

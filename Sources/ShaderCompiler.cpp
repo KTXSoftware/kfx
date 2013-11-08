@@ -1207,6 +1207,11 @@ static int compileGLSLToD3D11(std::string from, std::string to, std::string temp
 #endif
 }
 
+static int compileGLSLToESSL(ShaderSource source, std::string to, HLSLProfile profile) {
+	std::map<std::string, int> attributes;
+	return compileGLSL(source, to.c_str(), SH_ESSL_OUTPUT, profile, attributes);
+}
+
 static int compileGLSLToESSL(std::string from, std::string to) {
 	ShaderSource source;
 	readShaderSource(from.c_str(), source);
@@ -1244,7 +1249,10 @@ static void copyFile(std::string from, std::string to) {
 #endif
 }
 
+void compileShader(const char* inFilename, const char* outFilename, int mode, bool optimize, bool gles);
+
 static int compileGLSLToAGAL(std::string from, std::string to, std::string tempdir) {
+#if 0
 	//std::string totemp = tempdir + "/" + extractFilename(from);
 
 	ShaderSource source;
@@ -1286,6 +1294,28 @@ static int compileGLSLToAGAL(std::string from, std::string to, std::string tempd
 
 	std::map<std::string, int> attributes;
 	return compileGLSL(source, to.c_str(), SH_AGAL_OUTPUT, isVertexShader(from.c_str()) ? VS2Profile : PS2Profile, attributes);
+#endif
+
+	ShaderSource source;
+	readShaderSource(from.c_str(), source);
+	if (isVertexShader(from.c_str())) {
+		source.push_back("void main() {");
+		source.push_back("kore();");
+		source.push_back("vec4 pos = gl_Position;"); //hack to avoid https://github.com/adobe/glsl2agal/issues/24
+		source.push_back("gl_Position.z = (pos.z + pos.w) * 0.5;");
+		source.push_back("gl_Position.xy = pos.xy;");
+		source.push_back("gl_Position.w = pos.w;");
+		source.push_back("}");
+	}
+	else {
+		source.push_back("void main() { kore(); }");
+	}
+
+	std::string totemp = tempdir + "/" + extractFilename(from);
+	compileGLSLToESSL(source, totemp, isVertexShader(from.c_str()) ? VS2Profile : PS2Profile);
+
+	compileShader(totemp.c_str(), to.c_str(), isVertexShader(from.c_str()) ? 0 : 1, true, true);
+	return 1;
 }
 
 int main(int argc, char* argv[]) {

@@ -2,3 +2,7 @@
 	path = angleproject
 	url = ../angleproject
 	branch = master
+[submodule "glsl2agal"]
+	path = glsl2agal
+	url = ../glsl2agal
+	branch = master

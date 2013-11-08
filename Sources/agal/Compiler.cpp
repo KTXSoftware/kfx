@@ -225,7 +225,7 @@ void Compiler::compileAssign(ParsedValue* v, ParsedValue* e, Position p) {
 			cur.exprs;
 			compileAssign(nullptr, pif->eif, p);
 			auto vif = cur.exprs;
-			CodeBlock* velse;
+			CodeBlock* velse = NULL;
 			if (pif->eelse == nullptr) {
 				// restore writes
 				for (unsigned i = 0; i < oldWrite.size(); ++i)
@@ -368,7 +368,7 @@ CodeValue Compiler::compileValue(ParsedValue* e, bool* isTarget, bool* isCond) {
 	}
 	else if (e->v->isConst()) {
 		auto constant = dynamic_cast<PConst*>(e->v);
-		VarType* t;
+		VarType* t = NULL;
 		if (constant->c->isNull()) t = new TNull;
 		else if (constant->c->isInt()) t = new TInt;
 		else if (constant->c->isFloat()) t = new TFloat;

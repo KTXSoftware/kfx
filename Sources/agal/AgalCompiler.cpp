@@ -664,7 +664,7 @@ Opcode* AgalCompiler::modGenerate(Reg dst, Reg a, Reg b) {
 
 void AgalCompiler::regLive(Reg r, bool write) {
 	if (r.t != RTemp) return;
-	Temp* t;
+	Temp* t = NULL;
 	if (temps.find(r.index) != temps.end()) t = temps[r.index];
 	if (write) {
 		// alloc register
