@@ -11,6 +11,9 @@ project:addFile("glsl2agal/src/**")
 project:addFile("glsl2agal/agalassembler/**")
 project:addFile("glsl2agal/swc/**")
 project:addExclude("glsl2agal/src/glsl/main.cpp")
+project:addExclude("glsl2agal/src/glsl/*.ll")
+project:addExclude("glsl2agal/src/glsl/*.yy")
+project:addExclude("glsl2agal/src/glsl/*.sh")
 project:addExclude("glsl2agal/src/glsl/glcpp/tests/**")
 project:addExclude("glsl2agal/src/glsl/glcpp/glcpp.c")
 project:addExclude("glsl2agal/src/glsl/builtin_stubs.cpp")
@@ -18,7 +21,9 @@ project:addExclude("glsl2agal/src/glsl/builtin_stubs.cpp")
 project:addIncludeDir("glsl2agal/src/glsl")
 project:addIncludeDir("glsl2agal/src/mesa")
 project:addIncludeDir("glsl2agal/include")
-project:addIncludeDir("glsl2agal/msinttypes-r26")
+if platform == Platform.Windows then
+	project:addIncludeDir("glsl2agal/msinttypes-r26")
+end
 
 project:addDefine("GLSL2AGAL_LIB")
 

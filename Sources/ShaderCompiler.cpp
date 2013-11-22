@@ -19,19 +19,20 @@
 
 #ifdef SYS_WINDOWS
 #include <Windows.h>
-#include <gl/GL.h>
+//#include <gl/GL.h>
 #endif
 
 #ifdef SYS_OSX
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
+//#include <OpenGL/gl3.h>
+//#include <OpenGL/gl3ext.h>
+#include <unistd.h>
 #endif
 
 #ifdef SYS_LINUX
-#include<X11/X.h>
-#include<X11/Xlib.h>
-#include<GL/gl.h>
-#include<GL/glx.h>
+//#include<X11/X.h>
+//#include<X11/Xlib.h>
+//#include<GL/gl.h>
+//#include<GL/glx.h>
 #endif
 
 TCompiler* ConstructCompiler(ShShaderType type, ShShaderSpec spec, ShShaderOutput output) {

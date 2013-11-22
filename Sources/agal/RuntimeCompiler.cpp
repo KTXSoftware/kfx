@@ -1069,7 +1069,7 @@ CodeValueDecl* RuntimeCompiler::makeUnop(CodeUnop op, CodeValue e_) {
 		case CInt: return const2(c, [](float x) { return int(x); });
 		case CFrac: return const2(c, [](float x) { return (int)x % 1; });
 		case CExp: return const2(c, [](float x) { return exp(x); });
-		case CAbs: return const2(c, [](float x) { return abs(x); });
+		case CAbs: return const2(c, [](float x) { return fabs(x); });
 		case CRsq: return const2(c, [](float x) { return 1 / sqrt(x); });
 		case CRcp: return const2(c, [](float x) { return 1 / x; });
 		case CLog: return const2(c, [](float x) { return log(x); });
