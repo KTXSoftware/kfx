@@ -1225,7 +1225,9 @@ static int compileGLSLToESSL(std::string from, std::string to) {
 bool glsl14 = false;
 
 static int compileGLSLToGLSL(ShaderSource source, std::string to, HLSLProfile profile) {
+#ifdef SYS_OSX
 	glsl14 = true;
+#endif
 	std::map<std::string, int> attributes;
 	return compileGLSL(source, to.c_str(), SH_GLSL_OUTPUT, profile, attributes);
 }
