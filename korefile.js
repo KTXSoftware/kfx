@@ -28,11 +28,11 @@ if (platform === Platform.Windows) {
 project.addDefine("GLSL2AGAL_LIB");
 
 if (platform === Platform.Windows) {
-	project:addIncludeDir("Libraries/DirectX/Include");
-	project:addLibFor("Win32", "Libraries/DirectX/Lib/dxguid");
-	project:addLibFor("Win32", "Libraries/DirectX/Lib/d3dx9");
-	project:addLibFor("Win32", "Libraries/DirectX/Lib/d3d11");
-	project:addLibFor("Win32", "Libraries/DirectX/Lib/d3dcompiler");
+	project.addIncludeDir("Libraries/DirectX/Include");
+	project.addLibFor("Win32", "Libraries/DirectX/Lib/dxguid");
+	project.addLibFor("Win32", "Libraries/DirectX/Lib/d3dx9");
+	project.addLibFor("Win32", "Libraries/DirectX/Lib/d3d11");
+	project.addLibFor("Win32", "Libraries/DirectX/Lib/d3dcompiler");
 }
 
 project.addSubProject(Solution.createProject("angleproject"));
